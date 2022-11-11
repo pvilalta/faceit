@@ -58,8 +58,8 @@ fetch(
     },
   };
 
-  async
-    .forEachLimit(praccMatches, 20, async match => {
+  Promise.all(
+    praccMatches.map(async match => {
       const matchData = await fetch(`https://open.faceit.com/data/v4/matches/${match.match_id}/stats`, {
         method: 'get',
         headers: { Authorization: 'Bearer 6ce9a64f-8859-4b08-bfdf-063b52a83782' },
@@ -76,17 +76,17 @@ fetch(
 
       teamHasWon ? results[map].win++ : results[map].lose++;
     })
-    .then(() => {
-      const mapNames = Object.keys(results);
+  ).then(() => {
+    const mapNames = Object.keys(results);
 
-      mapNames.forEach(map => {
-        const currentMap = results[map];
-        results[map] = {
-          ...currentMap,
-          winRate: currentMap.win === 0 ? 0 + '%' : (currentMap.win / (currentMap.win + currentMap.lose)) * 100 + '%',
-        };
-      });
-
-      console.log(results);
+    mapNames.forEach(map => {
+      const currentMap = results[map];
+      results[map] = {
+        ...currentMap,
+        winRate: currentMap.win === 0 ? 0 + '%' : (currentMap.win / (currentMap.win + currentMap.lose)) * 100 + '%',
+      };
     });
+
+    console.log(results);
+  });
 });
