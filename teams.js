@@ -19,4 +19,34 @@ export default [
       'dafaeee4-6640-4d8f-9e2c-3faabe57f6bb',
     ],
   },
+  {
+    name: '6gender',
+    playerIds: [
+      '652fd93e-1f76-4eb8-b2b3-3e6e8a4cebd7', // neo
+      '37aed655-389b-42d9-bafc-a8b352eefd37', // skayzr
+      '7f6d2589-f012-40b6-9d51-0708d19f87b4', // eru
+      'bc76bb58-11e4-4a1f-a752-9463d5b7ebd8', // paulo
+      '8926654e-f0a8-457b-ab04-b71319fcbbd6', // antho
+    ],
+  },
+  {
+    name: '5doigts',
+    playerIds: [
+      '75502cb9-a437-43f4-99a7-ca217a135f46',
+      '12f3781f-6810-469e-b0c4-767022c54cdd',
+      'b8095759-0138-48cb-bc6b-96f1625937eb',
+      '3f11de63-4515-485b-b111-9f509f8492ec',
+      '501ed536-0467-42a5-b373-709ef24f6d75',
+    ],
+  },
+  {
+    // manque seeka
+    name: 'bigardpeek',
+    playerIds: [
+      'ac1029b5-5486-4035-85cc-ca4de9f39e93',
+      'f40996c2-3965-45b6-8a35-8fd1a0236746',
+      'ac8080f8-fc40-4507-b835-824418e19793',
+      '87215375-545d-452a-b7ad-95d77c35ecbd',
+    ],
+  },
 ];
