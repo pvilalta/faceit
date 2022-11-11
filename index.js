@@ -42,15 +42,15 @@ const getTeamStat = async team => {
     return matchedPlayers.length >= nbOfPlayers;
   });
 
-  const results = {};
+  const mapList = {};
 
   await Promise.all(
     praccMatches.map(async match => {
-      const matchRawData = await fetchGet(`https://open.faceit.com/data/v4/matches/${match.match_id}/stats`);
-      if (!matchRawData.rounds) return;
+      const matchData = await fetchGet(`https://open.faceit.com/data/v4/matches/${match.match_id}/stats`);
+      if (!matchData.rounds) return;
 
-      const map = matchRawData.rounds[0].round_stats.Map;
-      if (!results[map]) results[map] = { win: 0, lose: 0 };
+      const map = matchData.rounds[0].round_stats.Map;
+      if (!mapList[map]) mapList[map] = { win: 0, lose: 0 };
 
       const isFaction1 = Boolean(
         match.teams.faction1.players
@@ -60,20 +60,19 @@ const getTeamStat = async team => {
       const hasFaction1Won = match.results.score.faction1;
       const teamHasWon = (isFaction1 && hasFaction1Won) || (!isFaction1 && !hasFaction1Won);
 
-      teamHasWon ? results[map].win++ : results[map].lose++;
+      teamHasWon ? mapList[map].win++ : mapList[map].lose++;
     })
   );
 
-  const mapNames = Object.keys(results);
-  mapNames.forEach(map => {
-    const currentMap = results[map];
-    results[map] = {
+  Object.keys(mapList).forEach(map => {
+    const currentMap = mapList[map];
+    mapList[map] = {
       ...currentMap,
       winRate:
         currentMap.win === 0 ? 0 + '%' : ((currentMap.win / (currentMap.win + currentMap.lose)) * 100).toFixed(0) + '%',
     };
   });
-  console.log(team.name, results);
+  console.log(team.name, mapList);
 
   // console.log('praccMatches', praccMatches);
 };
