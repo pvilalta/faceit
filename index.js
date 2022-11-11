@@ -1,30 +1,37 @@
 import fetch from 'node-fetch';
-import async from 'async';
+import allTeams from './teams.js';
 
-// qph player
-fetch(
-  'https://open.faceit.com/data/v4/players/a5d6fdbd-7d81-4857-83c0-6687f67d6bd5/history?game=csgo&offset=0&limit=100',
-  {
-    method: 'get',
-    headers: { Authorization: 'Bearer 6ce9a64f-8859-4b08-bfdf-063b52a83782' },
-  }
-).then(async res => {
-  const userMatches = (await res.json()).items;
+let nbOfPlayers = 5;
+let teams = allTeams;
 
-  const mateIds = [
-    '5788cc8f-7c0f-4335-9924-fc7350970351',
-    '56d6559c-316c-471a-9aed-097c806c3f6f',
-    'a2c93385-78cf-40fb-8a46-2b44e2c0f592',
-    '1fcf0de2-9bf4-4ae1-8fdc-16592708afb4',
-  ];
+process.argv.forEach(function (value, index) {
+  if (index === 2 && value) nbOfPlayers = value;
+  if (index === 3 && value) teams = [allTeams.find(team => team.name === value)];
+});
 
-  const praccMatches = userMatches.filter(match => {
-    return (
-      match.playing_players.includes(mateIds[0]) &&
-      match.playing_players.includes(mateIds[1]) &&
-      match.playing_players.includes(mateIds[2]) &&
-      match.playing_players.includes(mateIds[3])
-    );
+const getTeamStat = async team => {
+  const teamMatches = await Promise.all(
+    team.playerIds.map(id =>
+      fetch(`https://open.faceit.com/data/v4/players/${id}/history?game=csgo&offset=0&limit=100`, {
+        method: 'get',
+        headers: { Authorization: 'Bearer 6ce9a64f-8859-4b08-bfdf-063b52a83782' },
+      }).then(res => res.json())
+    )
+  );
+
+  let allMatches = [];
+
+  teamMatches.forEach(match => (allMatches = allMatches.concat(match.items)));
+  const uniqueAllMatches = allMatches.filter(
+    (match, index, self) => self.findIndex(m => m.match_id === match.match_id) === index
+  );
+
+  const praccMatches = uniqueAllMatches.filter(match => {
+    const matchedPlayers = match.playing_players.filter(player => {
+      return team.playerIds.includes(player);
+    });
+
+    return matchedPlayers.length >= nbOfPlayers;
   });
 
   const results = {
@@ -57,36 +64,38 @@ fetch(
       lose: 0,
     },
   };
-
   Promise.all(
     praccMatches.map(async match => {
-      const matchData = await fetch(`https://open.faceit.com/data/v4/matches/${match.match_id}/stats`, {
+      const matchRawData = await fetch(`https://open.faceit.com/data/v4/matches/${match.match_id}/stats`, {
         method: 'get',
         headers: { Authorization: 'Bearer 6ce9a64f-8859-4b08-bfdf-063b52a83782' },
       });
+      const matchData = (await matchRawData.json()).rounds;
+      if (!matchData) return;
 
-      const map = (await matchData.json()).rounds[0].round_stats.Map;
+      const map = matchData[0].round_stats.Map;
 
-      const isFaction1 = match.teams.faction1.players
-        .map(({ player_id }) => player_id)
-        .includes('a5d6fdbd-7d81-4857-83c0-6687f67d6bd5');
-
+      const isFaction1 = match.teams.faction1.players.map(({ player_id }) => player_id).includes(team.playerIds[0]);
       const isFaction1Won = match.results.score.faction1;
       const teamHasWon = (isFaction1 && isFaction1Won) || (!isFaction1 && !isFaction1Won);
-
       teamHasWon ? results[map].win++ : results[map].lose++;
     })
   ).then(() => {
     const mapNames = Object.keys(results);
-
     mapNames.forEach(map => {
       const currentMap = results[map];
       results[map] = {
         ...currentMap,
-        winRate: currentMap.win === 0 ? 0 + '%' : (currentMap.win / (currentMap.win + currentMap.lose)) * 100 + '%',
+        winRate:
+          currentMap.win === 0
+            ? 0 + '%'
+            : ((currentMap.win / (currentMap.win + currentMap.lose)) * 100).toFixed(0) + '%',
       };
     });
-
-    console.log(results);
+    console.log(team.name, results);
   });
-});
+
+  // console.log('praccMatches', praccMatches);
+};
+
+Promise.all(teams.map(getTeamStat));
