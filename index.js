@@ -1,5 +1,6 @@
 import fetch from 'node-fetch';
 import allTeams from './teams.js';
+import maps from './maps.js';
 
 let apiKey = '065d12a6-7056-440b-aa76-06e2298141a7';
 // let apiKey = '6ce9a64f-8859-4b08-bfdf-063b52a83782';
@@ -64,15 +65,19 @@ const getTeamStat = async team => {
     })
   );
 
-  Object.keys(mapList).forEach(map => {
-    const currentMap = mapList[map];
-    mapList[map] = {
-      ...currentMap,
-      winRate:
-        currentMap.win === 0 ? 0 + '%' : ((currentMap.win / (currentMap.win + currentMap.lose)) * 100).toFixed(0) + '%',
-    };
-  });
-  console.log(team.name, mapList);
+  const mapListWinRate = Object.keys(mapList)
+    .filter(mapName => maps.includes(mapName))
+    .map(mapName => {
+      const currentMap = mapList[mapName];
+      return {
+        name: mapName,
+        ...currentMap,
+        winRate: currentMap.win === 0 ? 0 : parseInt((currentMap.win / (currentMap.win + currentMap.lose)) * 100),
+      };
+    })
+    .sort((a, b) => (a.winRate > b.winRate ? -1 : 1));
+
+  console.log(team.name, mapListWinRate);
 
   // console.log('praccMatches', praccMatches);
 };
