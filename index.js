@@ -2,10 +2,10 @@ import fetch from 'node-fetch';
 import allTeams from './teams.js';
 import maps from './maps.js';
 
-let apiKey = '065d12a6-7056-440b-aa76-06e2298141a7';
-// let apiKey = '6ce9a64f-8859-4b08-bfdf-063b52a83782';
+const apiKey = '065d12a6-7056-440b-aa76-06e2298141a7';
+// const apiKey = '6ce9a64f-8859-4b08-bfdf-063b52a83782';
 
-let nbOfPlayers = 5;
+let nbOfPlayers;
 let teams = allTeams;
 
 process.argv.forEach((value, index) => {
@@ -23,7 +23,7 @@ const fetchGet = async url => {
 };
 
 const getTeamStat = async team => {
-  if (team.playerIds.length < nbOfPlayers) return;
+  const nbOfPlayersAnalysis = team.playerIds.length < nbOfPlayers ? team.playerIds.length : nbOfPlayers;
 
   const teamMatches = await Promise.all(
     team.playerIds.map(id =>
@@ -35,12 +35,12 @@ const getTeamStat = async team => {
 
   teamMatches.forEach(match => (allMatches = allMatches.concat(match.items)));
   const uniqueAllMatches = allMatches.filter(
-    (match, index, self) => self.findIndex(m => m.match_id === match.match_id) === index
+    (match, index, self) => self.findIndex(m => m?.match_id === match?.match_id) === index
   );
 
   const praccMatches = uniqueAllMatches.filter(match => {
     const matchedPlayers = match.playing_players.filter(player => team.playerIds.includes(player));
-    return matchedPlayers.length >= nbOfPlayers;
+    return matchedPlayers.length >= nbOfPlayersAnalysis;
   });
 
   const mapList = {};
@@ -77,9 +77,7 @@ const getTeamStat = async team => {
     })
     .sort((a, b) => (a.winRate > b.winRate ? -1 : 1));
 
-  console.log(team.name, mapListWinRate);
-
-  // console.log('praccMatches', praccMatches);
+  console.log(team.name, nbOfPlayersAnalysis, mapListWinRate);
 };
 
 teams.forEach(getTeamStat);
