@@ -2,8 +2,7 @@ import fetch from 'node-fetch';
 import allTeams from './teams.js';
 import maps from './maps.js';
 
-const apiKey = '065d12a6-7056-440b-aa76-06e2298141a7';
-// const apiKey = '6ce9a64f-8859-4b08-bfdf-063b52a83782';
+const apiKey = process.env.APIKEY;
 
 let nbOfPlayers;
 let teams = allTeams;

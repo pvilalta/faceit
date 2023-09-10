@@ -11,6 +11,8 @@
   "license": "ISC",
   "dependencies": {
     "async": "^3.2.4",
-    "node-fetch": "^3.2.10"
+    "node-fetch": "^3.2.10",
+    "puppeteer": "^19.3.0",
+    "request-promise-native": "^1.0.9"
   }
 }
